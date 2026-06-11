@@ -60,6 +60,8 @@ const marketIndexPoints = marketIndex
   .map((item) => `${item.x},${item.y}`)
   .join(" ");
 
+const labeledMonths = ["Jan", "Jun", "Dec"];
+
 export default function Dashboard() {
   return (
     <main className="min-h-screen bg-slate-950 px-6 py-8 text-white">
@@ -137,24 +139,26 @@ export default function Dashboard() {
 
                   {marketIndex.map((item) => (
                     <g key={item.month}>
-                      <text
-                        x={item.x}
-                        y={item.y - 18}
-                        textAnchor="middle"
-                        fill="#facc15"
-                        fontSize="28"
-                        fontWeight="700"
-                      >
-                        {item.value}
-                      </text>
+                      {labeledMonths.includes(item.month) && (
+                        <text
+                          x={item.x}
+                          y={item.y - 18}
+                          textAnchor="middle"
+                          fill="#facc15"
+                          fontSize="22"
+                          fontWeight="700"
+                        >
+                          {item.value}
+                        </text>
+                      )}
 
                       <circle
                         cx={item.x}
                         cy={item.y}
-                        r="9"
+                        r="8"
                         fill="#facc15"
                         stroke="#020617"
-                        strokeWidth="5"
+                        strokeWidth="4"
                       />
                     </g>
                   ))}
