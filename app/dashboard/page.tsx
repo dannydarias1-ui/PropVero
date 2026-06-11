@@ -21,10 +21,44 @@ const scoreBands = [
 ];
 
 const markets = [
-  { city: "Santiago", status: "Expansion", signal: "Strong yield and deal activity", color: "bg-green-400" },
-  { city: "Santo Domingo", status: "Institutional", signal: "High liquidity and deeper market", color: "bg-blue-400" },
-  { city: "Puerto Plata", status: "Transitional", signal: "Tourism-driven opportunity pockets", color: "bg-yellow-400" },
+  {
+    city: "Santiago",
+    status: "Expansion",
+    signal: "Strong yield and deal activity",
+    color: "bg-green-400",
+  },
+  {
+    city: "Santo Domingo",
+    status: "Institutional",
+    signal: "High liquidity and deeper market",
+    color: "bg-blue-400",
+  },
+  {
+    city: "Puerto Plata",
+    status: "Transitional",
+    signal: "Tourism-driven opportunity pockets",
+    color: "bg-yellow-400",
+  },
 ];
+
+const marketIndex = [
+  { month: "Jan", value: 42, x: 0, y: 190 },
+  { month: "Feb", value: 55, x: 100, y: 155 },
+  { month: "Mar", value: 48, x: 200, y: 172 },
+  { month: "Apr", value: 62, x: 300, y: 130 },
+  { month: "May", value: 58, x: 400, y: 142 },
+  { month: "Jun", value: 74, x: 500, y: 92 },
+  { month: "Jul", value: 69, x: 600, y: 105 },
+  { month: "Aug", value: 82, x: 700, y: 68 },
+  { month: "Sep", value: 78, x: 800, y: 78 },
+  { month: "Oct", value: 88, x: 900, y: 42 },
+  { month: "Nov", value: 84, x: 1000, y: 52 },
+  { month: "Dec", value: 93, x: 1100, y: 20 },
+];
+
+const marketIndexPoints = marketIndex
+  .map((item) => `${item.x},${item.y}`)
+  .join(" ");
 
 export default function Dashboard() {
   return (
@@ -39,10 +73,12 @@ export default function Dashboard() {
             <p className="text-sm uppercase tracking-[0.35em] text-yellow-400">
               Investor Dashboard
             </p>
-            <h1 className="mt-3 text-5xl font-bold">PropVero Market Intelligence</h1>
+            <h1 className="mt-3 text-5xl font-bold">
+              PropVero Market Intelligence
+            </h1>
             <p className="mt-4 max-w-2xl text-slate-300">
-              Track deal quality, market yield, liquidity, and opportunity signals across
-              the Dominican Republic.
+              Track deal quality, market yield, liquidity, and opportunity signals
+              across the Dominican Republic.
             </p>
           </div>
 
@@ -58,7 +94,10 @@ export default function Dashboard() {
             ["Avg Yield", "14.4%", "Apartment benchmark"],
             ["Markets", "6+", "DR coverage"],
           ].map(([label, value, detail]) => (
-            <div key={label} className="rounded-2xl border border-white/10 bg-slate-900 p-6">
+            <div
+              key={label}
+              className="rounded-2xl border border-white/10 bg-slate-900 p-6"
+            >
               <p className="text-sm text-slate-400">{label}</p>
               <p className="mt-3 text-3xl font-bold text-yellow-400">{value}</p>
               <p className="mt-2 text-sm text-slate-500">{detail}</p>
@@ -66,7 +105,7 @@ export default function Dashboard() {
           ))}
         </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
+        <section className="mt-8 grid gap-6 lg:grid-cols-2">
           <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -78,22 +117,60 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div className="mt-8 h-52 rounded-2xl border border-white/10 bg-slate-950 p-5">
-              <div className="flex h-full items-end gap-3">
-                {[42, 55, 48, 62, 58, 74, 69, 82, 78, 88, 84, 93].map((height, index) => (
-                  <div key={index} className="flex flex-1 flex-col items-center gap-2">
-                    <div
-                      className="w-full rounded-t bg-yellow-400/80"
-                      style={{ height: `${height}%` }}
-                    />
-                  </div>
+            <div className="mt-8 rounded-2xl border border-white/10 bg-slate-950 p-5">
+              <div className="relative h-60">
+                <div className="absolute inset-0 flex flex-col justify-between">
+                  {[0, 1, 2, 3].map((line) => (
+                    <div key={line} className="border-t border-white/10" />
+                  ))}
+                </div>
+
+                <svg viewBox="-30 0 1160 285" className="relative h-full w-full">
+                  <polyline
+                    fill="none"
+                    stroke="#facc15"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    points={marketIndexPoints}
+                  />
+
+                  {marketIndex.map((item) => (
+                    <g key={item.month}>
+                      <text
+                        x={item.x}
+                        y={item.y - 18}
+                        textAnchor="middle"
+                        fill="#facc15"
+                        fontSize="28"
+                        fontWeight="700"
+                      >
+                        {item.value}
+                      </text>
+
+                      <circle
+                        cx={item.x}
+                        cy={item.y}
+                        r="9"
+                        fill="#facc15"
+                        stroke="#020617"
+                        strokeWidth="5"
+                      />
+                    </g>
+                  ))}
+                </svg>
+              </div>
+
+              <div className="mt-3 grid grid-cols-12 gap-2 text-center text-[10px] text-slate-500">
+                {marketIndex.map((item) => (
+                  <span key={item.month}>{item.month.slice(0, 1)}</span>
                 ))}
               </div>
             </div>
 
             <p className="mt-4 text-sm text-slate-400">
-              Simulated monthly index movement. This will later connect to the PropVero
-              Market Index engine.
+              Simulated monthly index movement. This will later connect to the
+              PropVero Market Index engine.
             </p>
           </div>
 
@@ -152,14 +229,17 @@ export default function Dashboard() {
             <p className="text-sm text-yellow-300">VeroScore™</p>
             <h2 className="mt-2 text-3xl font-bold">Score Distribution</h2>
             <p className="mt-4 text-slate-300">
-              Preview how opportunities are grouped into score bands for Free and Pro users.
+              Preview how opportunities are grouped into score bands for Free and
+              Pro users.
             </p>
 
             <div className="mt-8 space-y-5">
               {scoreBands.map((band) => (
                 <div key={band.band}>
                   <div className="mb-2 flex justify-between text-sm">
-                    <span>{band.band} · {band.label}</span>
+                    <span>
+                      {band.band} · {band.label}
+                    </span>
                     <span className="text-yellow-300">{band.count}</span>
                   </div>
                   <div className="h-3 rounded-full bg-slate-950">
@@ -176,7 +256,10 @@ export default function Dashboard() {
 
         <section className="mt-8 grid gap-6 lg:grid-cols-3">
           {markets.map((market) => (
-            <div key={market.city} className="rounded-3xl border border-white/10 bg-slate-900 p-6">
+            <div
+              key={market.city}
+              className="rounded-3xl border border-white/10 bg-slate-900 p-6"
+            >
               <div className="flex items-center gap-3">
                 <span className={`h-3 w-3 rounded-full ${market.color}`} />
                 <p className="text-2xl font-bold">{market.city}</p>
