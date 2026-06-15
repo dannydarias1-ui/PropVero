@@ -1,279 +1,257 @@
-const deals = [
-  { city: "Santiago", type: "Apartment", score: 94, yield: "12.8%", status: "Strong Deal" },
-  { city: "Santiago", type: "House", score: 91, yield: "11.2%", status: "Strong Deal" },
-  { city: "Puerto Plata", type: "Villa", score: 89, yield: "10.1%", status: "Good Deal" },
-  { city: "Higüey", type: "Apartment", score: 88, yield: "9.4%", status: "Good Deal" },
-];
+"use client";
 
-const yields = [
-  { city: "Santiago", value: 14.4 },
-  { city: "Higüey", value: 9.0 },
-  { city: "Punta Cana", value: 8.1 },
-  { city: "Santo Domingo", value: 7.2 },
-  { city: "Puerto Plata", value: 7.1 },
-];
+import { useEffect, useMemo, useState } from "react";
+import MarketMap from "@/components/MarketMap";
 
-const scoreBands = [
-  { band: "90–100", label: "Elite", count: 24, width: "90%" },
-  { band: "80–89", label: "Strong", count: 68, width: "72%" },
-  { band: "70–79", label: "Good", count: 142, width: "55%" },
-  { band: "60–69", label: "Watch", count: 210, width: "42%" },
-];
+type ApiData = {
+  ok: boolean;
+  generatedAt: string;
+  summary: any;
+  citySummary: any[];
+  santiagoDashboard: any[];
+  homepage: any[];
+};
 
-const markets = [
-  {
-    city: "Santiago",
-    status: "Expansion",
-    signal: "Strong yield and deal activity",
-    color: "bg-green-400",
-  },
-  {
-    city: "Santo Domingo",
-    status: "Institutional",
-    signal: "High liquidity and deeper market",
-    color: "bg-blue-400",
-  },
-  {
-    city: "Puerto Plata",
-    status: "Transitional",
-    signal: "Tourism-driven opportunity pockets",
-    color: "bg-yellow-400",
-  },
-];
+const money = (value: any) =>
+  value ? Number(value).toLocaleString("en-US") : "N/A";
 
-const marketIndex = [
-  { month: "Jan", value: 42, x: 0, y: 190 },
-  { month: "Feb", value: 55, x: 100, y: 155 },
-  { month: "Mar", value: 48, x: 200, y: 172 },
-  { month: "Apr", value: 62, x: 300, y: 130 },
-  { month: "May", value: 58, x: 400, y: 142 },
-  { month: "Jun", value: 74, x: 500, y: 92 },
-  { month: "Jul", value: 69, x: 600, y: 105 },
-  { month: "Aug", value: 82, x: 700, y: 68 },
-  { month: "Sep", value: 78, x: 800, y: 78 },
-  { month: "Oct", value: 88, x: 900, y: 42 },
-  { month: "Nov", value: 84, x: 1000, y: 52 },
-  { month: "Dec", value: 93, x: 1100, y: 20 },
-];
+const pct = (value: any) =>
+  value !== null && value !== undefined ? `${Number(value).toFixed(2)}%` : "N/A";
 
-const marketIndexPoints = marketIndex
-  .map((item) => `${item.x},${item.y}`)
-  .join(" ");
+export default function DashboardPage() {
+  const [data, setData] = useState<ApiData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-const labeledMonths = ["Jan", "Jun", "Dec"];
+  useEffect(() => {
+    const controller = new AbortController();
 
-export default function Dashboard() {
+    fetch("/api/dashboard", {
+      signal: controller.signal,
+      cache: "no-store",
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        setData(json);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Dashboard fetch error:", error);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  const topCities = useMemo(() => data?.citySummary ?? [], [data]);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#070B14] text-white p-8">
+        <p className="text-slate-400">Loading PropVero intelligence...</p>
+      </main>
+    );
+  }
+
+  if (!data?.ok) {
+    return (
+      <main className="min-h-screen bg-[#070B14] text-white p-8">
+        <p>Unable to load dashboard.</p>
+      </main>
+    );
+  }
+
+  const top = topCities[0];
+
   return (
-    <main className="min-h-screen bg-slate-950 px-6 py-8 text-white">
-      <div className="mx-auto max-w-7xl">
-        <a href="/" className="text-sm text-yellow-400 hover:text-yellow-300">
-          ← Back to Home
-        </a>
+    <main className="min-h-screen bg-[#070B14] text-white">
+      <section className="relative overflow-hidden border-b border-white/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.22),transparent_35%),radial-gradient(circle_at_top_left,rgba(59,130,246,0.18),transparent_30%)]" />
 
-        <div className="mt-8 flex flex-col justify-between gap-6 md:flex-row md:items-end">
-          <div>
-            <p className="text-sm uppercase tracking-[0.35em] text-yellow-400">
-              Investor Dashboard
-            </p>
-            <h1 className="mt-3 text-5xl font-bold">
-              PropVero Market Intelligence
-            </h1>
-            <p className="mt-4 max-w-2xl text-slate-300">
-              Track deal quality, market yield, liquidity, and opportunity signals
-              across the Dominican Republic.
-            </p>
-          </div>
-
-          <button className="rounded-xl bg-yellow-400 px-6 py-3 font-bold text-slate-950 hover:bg-yellow-300">
-            Upgrade to Pro
-          </button>
-        </div>
-
-        <section className="mt-10 grid gap-5 md:grid-cols-4">
-          {[
-            ["Listings", "132K+", "Cleaned records"],
-            ["Strong Deals", "24", "Santiago pilot"],
-            ["Avg Yield", "14.4%", "Apartment benchmark"],
-            ["Markets", "6+", "DR coverage"],
-          ].map(([label, value, detail]) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-white/10 bg-slate-900 p-6"
-            >
-              <p className="text-sm text-slate-400">{label}</p>
-              <p className="mt-3 text-3xl font-bold text-yellow-400">{value}</p>
-              <p className="mt-2 text-sm text-slate-500">{detail}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="mt-8 grid gap-6 lg:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-400">Market Index</p>
-                <h2 className="text-2xl font-bold">DR Opportunity Index</h2>
+        <div className="relative px-8 py-10 max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs text-amber-300 mb-4">
+                LIVE DR MARKET INTELLIGENCE
               </div>
-              <span className="rounded-full bg-green-400/10 px-3 py-1 text-sm text-green-300">
-                +8.7%
+
+              <h1 className="text-5xl font-black tracking-tight">
+                PropVero Dashboard
+              </h1>
+
+              <p className="text-slate-400 mt-3 max-w-2xl">
+                Truth-driven real estate analytics for the Dominican Republic —
+                active inventory, yield signals, market quality, and city-level opportunity.
+              </p>
+            </div>
+
+            <div className="text-sm text-slate-400">
+              Updated:{" "}
+              <span className="text-slate-200">
+                {new Date(data.generatedAt).toLocaleString()}
               </span>
             </div>
+          </div>
 
-            <div className="mt-8 rounded-2xl border border-white/10 bg-slate-950 p-5">
-              <div className="relative h-60">
-                <div className="absolute inset-0 flex flex-col justify-between">
-                  {[0, 1, 2, 3].map((line) => (
-                    <div key={line} className="border-t border-white/10" />
-                  ))}
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-10">
+            <MetricCard
+              label="Top Market"
+              value={data.summary.topMarket}
+              sub={`${top?.active_listings ?? "—"} active listings`}
+            />
+            <MetricCard
+              label="Top 10 Active Listings"
+              value={money(data.summary.totalActiveListings)}
+              sub="Across leading DR markets"
+            />
+            <MetricCard
+              label="Markets Tracked"
+              value={data.summary.marketsShown}
+              sub="Top markets shown"
+            />
+            <MetricCard
+              label="Santiago Active"
+              value={money(data.summary.santiagoActiveListings)}
+              sub="Pilot market depth"
+            />
+          </div>
+        </div>
+      </section>
 
-                <svg viewBox="-30 0 1160 285" className="relative h-full w-full">
-                  <polyline
-                    fill="none"
-                    stroke="#facc15"
-                    strokeWidth="6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    points={marketIndexPoints}
-                  />
-
-                  {marketIndex.map((item) => (
-                    <g key={item.month}>
-                      {labeledMonths.includes(item.month) && (
-                        <text
-                          x={item.x}
-                          y={item.y - 18}
-                          textAnchor="middle"
-                          fill="#facc15"
-                          fontSize="22"
-                          fontWeight="700"
-                        >
-                          {item.value}
-                        </text>
-                      )}
-
-                      <circle
-                        cx={item.x}
-                        cy={item.y}
-                        r="8"
-                        fill="#facc15"
-                        stroke="#020617"
-                        strokeWidth="4"
-                      />
-                    </g>
-                  ))}
-                </svg>
-              </div>
-
-              <div className="mt-3 grid grid-cols-12 gap-2 text-center text-[10px] text-slate-500">
-                {marketIndex.map((item) => (
-                  <span key={item.month}>{item.month.slice(0, 1)}</span>
-                ))}
-              </div>
-            </div>
-
-            <p className="mt-4 text-sm text-slate-400">
-              Simulated monthly index movement. This will later connect to the
-              PropVero Market Index engine.
+      <section className="max-w-7xl mx-auto px-8 py-8">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
+          <div className="mb-5">
+            <h2 className="text-2xl font-bold">DR Market Intelligence Map</h2>
+            <p className="text-slate-400 text-sm">
+              Municipality-level real estate signals powered by PropVero GIS.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
-            <p className="text-sm text-slate-400">Yield Comparison</p>
-            <h2 className="text-2xl font-bold">Gross Yield by Market</h2>
+          <div className="rounded-xl border border-white/10 bg-slate-900/60 p-2">
+  <MarketMap />
+</div>
+        </div>
+      </section>
 
-            <div className="mt-8 space-y-5">
-              {yields.map((item) => (
-                <div key={item.city}>
-                  <div className="mb-2 flex justify-between text-sm">
-                    <span>{item.city}</span>
-                    <span className="text-yellow-400">{item.value}%</span>
-                  </div>
-                  <div className="h-3 rounded-full bg-slate-800">
-                    <div
-                      className="h-3 rounded-full bg-yellow-400"
-                      style={{ width: `${(item.value / 15) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+      <section className="max-w-7xl mx-auto px-8 pb-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-2xl font-bold">Market Leaderboard</h2>
+              <p className="text-slate-400 text-sm">
+                Active inventory and opportunity signals by city
+              </p>
             </div>
           </div>
-        </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
-            <h2 className="text-2xl font-bold">Top Deal Signals</h2>
+          <div className="space-y-3">
+            {topCities.map((row, idx) => (
+              <div
+                key={`${row.city}-${idx}`}
+                className="rounded-xl bg-slate-900/70 border border-white/10 p-4 hover:border-amber-400/40 transition"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-amber-400/10 text-amber-300 flex items-center justify-center font-bold">
+                      {idx + 1}
+                    </div>
 
-            <div className="mt-6 overflow-hidden rounded-2xl border border-white/10">
-              <div className="grid grid-cols-5 bg-white/5 px-4 py-3 text-xs uppercase tracking-wider text-slate-400">
-                <p>City</p>
-                <p>Type</p>
-                <p>Score</p>
-                <p>Yield</p>
-                <p>Status</p>
+                    <div>
+                      <h3 className="font-semibold text-lg">{row.city}</h3>
+                      <p className="text-sm text-slate-400">
+                        {row.market_regime ?? "No regime"} ·{" "}
+                        {row.confidence_level ?? "No"} confidence
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <p className="font-bold text-xl">
+                      {money(row.active_listings)}
+                    </p>
+                    <p className="text-xs text-slate-400">active listings</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                  <MiniStat label="Best Yield" value={pct(row.best_yield_pct)} />
+                  <MiniStat label="Segments" value={row.investment_segments} />
+                  <MiniStat label="Quality" value={row.market_quality_label ?? "N/A"} />
+                </div>
               </div>
-
-              {deals.map((deal) => (
-                <div
-                  key={`${deal.city}-${deal.type}`}
-                  className="grid grid-cols-5 border-t border-white/10 px-4 py-4 text-sm"
-                >
-                  <p className="font-semibold">{deal.city}</p>
-                  <p className="text-slate-300">{deal.type}</p>
-                  <p className="font-bold text-yellow-400">{deal.score}</p>
-                  <p>{deal.yield}</p>
-                  <p className="text-green-300">{deal.status}</p>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
+        </div>
 
-          <div className="rounded-3xl border border-yellow-400/30 bg-yellow-400/10 p-6">
-            <p className="text-sm text-yellow-300">VeroScore™</p>
-            <h2 className="mt-2 text-3xl font-bold">Score Distribution</h2>
-            <p className="mt-4 text-slate-300">
-              Preview how opportunities are grouped into score bands for Free and
-              Pro users.
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-slate-900 to-slate-950 p-6 shadow-2xl">
+          <h2 className="text-2xl font-bold mb-2">Santiago Signal</h2>
+          <p className="text-slate-400 text-sm mb-6">
+            Pilot market investment snapshot
+          </p>
+
+          <div className="rounded-xl bg-amber-400/10 border border-amber-400/20 p-5 mb-5">
+            <p className="text-sm text-amber-300">Best Segment Yield</p>
+            <p className="text-5xl font-black mt-2">
+              {pct(data.santiagoDashboard?.[0]?.best_yield_pct)}
             </p>
-
-            <div className="mt-8 space-y-5">
-              {scoreBands.map((band) => (
-                <div key={band.band}>
-                  <div className="mb-2 flex justify-between text-sm">
-                    <span>
-                      {band.band} · {band.label}
-                    </span>
-                    <span className="text-yellow-300">{band.count}</span>
-                  </div>
-                  <div className="h-3 rounded-full bg-slate-950">
-                    <div
-                      className="h-3 rounded-full bg-yellow-400"
-                      style={{ width: band.width }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <p className="text-slate-400 text-sm mt-2">
+              Santiago active listings: {money(data.summary.santiagoActiveListings)}
+            </p>
           </div>
-        </section>
 
-        <section className="mt-8 grid gap-6 lg:grid-cols-3">
-          {markets.map((market) => (
-            <div
-              key={market.city}
-              className="rounded-3xl border border-white/10 bg-slate-900 p-6"
-            >
-              <div className="flex items-center gap-3">
-                <span className={`h-3 w-3 rounded-full ${market.color}`} />
-                <p className="text-2xl font-bold">{market.city}</p>
+          <div className="space-y-3">
+            {data.santiagoDashboard.map((row, index) => (
+              <div
+                key={`${row.property_type}-${row.currency}-${index}`}
+                className="rounded-xl bg-white/[0.04] border border-white/10 p-4"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold capitalize">
+                      {row.property_type} · {row.currency}
+                    </h3>
+                    <p className="text-sm text-slate-400">{row.yield_label}</p>
+                  </div>
+                  <span className="text-amber-300 font-bold">
+                    {pct(row.gross_yield_pct)}
+                  </span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+                  <MiniStat label="Median Sale" value={money(row.median_sale_price)} />
+                  <MiniStat label="Median Rent" value={money(row.median_monthly_rent)} />
+                </div>
               </div>
-              <p className="mt-4 text-yellow-400">{market.status}</p>
-              <p className="mt-3 text-sm text-slate-400">{market.signal}</p>
-            </div>
-          ))}
-        </section>
-      </div>
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  sub,
+}: {
+  label: string;
+  value: string | number;
+  sub: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5 shadow-xl">
+      <p className="text-sm text-slate-400">{label}</p>
+      <p className="text-3xl font-black mt-2">{value}</p>
+      <p className="text-xs text-slate-500 mt-2">{sub}</p>
+    </div>
+  );
+}
+
+function MiniStat({ label, value }: { label: string; value: any }) {
+  return (
+    <div className="rounded-lg bg-black/20 p-3">
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="font-semibold mt-1">{value ?? "N/A"}</p>
+    </div>
   );
 }

@@ -39,3 +39,24 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.tmp.driveupload/
+data/
+*.dump
+*.gpkg
+*.zip
+postgres_backup.dump
+
+Buffer
+Error
+any
+boolean
+dir
+findstr
+new
+number
+type
+void
+void)
+webpack.Stats
+ws
